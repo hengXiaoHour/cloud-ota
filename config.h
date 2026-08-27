@@ -15,7 +15,7 @@
 #define AUTO_OTA            false
 
 // Current firmware version - BUMP THIS ON EVERY RELEASE
-#define FW_VERSION      "0.0.3"
+#define FW_VERSION      "0.0.4"
 
 // Set to true to skip cert validation (easiest, works behind GitHub CDN)
 // For production use set to false and add root CA
