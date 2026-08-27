@@ -48,7 +48,7 @@ void connectWiFi() {
   }
 }
 
-bool checkForUpdate() {
+bool checkForUpdate(bool doInstall = true) {
   if (WiFi.status() != WL_CONNECTED) {
     connectWiFi();
     if (WiFi.status() != WL_CONNECTED) return false;
@@ -109,6 +109,11 @@ bool checkForUpdate() {
 
   Serial.printf("[OTA] NEW VERSION! %s -> %s\n", FW_VERSION, latest.c_str());
   Serial.printf("[OTA] Bin URL: %s\n", binUrl.c_str());
+  if (!doInstall) {
+    Serial.println("[OTA] >>> New version available! Type /update to flash <<<");
+    Serial.printf("[OTA] Current: %s | Available: %s\n", FW_VERSION, latest.c_str());
+    return false;
+  }
   Serial.println("[OTA] Starting flash... DO NOT POWER OFF");
 
   if (LED_PIN >= 0) pinMode(LED_PIN, OUTPUT);
@@ -154,7 +159,8 @@ void setup() {
   }
 
   connectWiFi();
-  checkForUpdate();
+  // On boot: only check, don't auto-flash if AUTO_OTA=false — user must send /update
+  checkForUpdate(AUTO_OTA);
   lastCheck = millis();
 }
 
@@ -171,7 +177,8 @@ void loop() {
 
   if (millis() - lastCheck > OTA_CHECK_INTERVAL) {
     lastCheck = millis();
-    checkForUpdate();
+    // Periodic check respects AUTO_OTA: false = notify only, true = auto-flash
+    checkForUpdate(AUTO_OTA);
   }
 
   if (Serial.available()) {
@@ -179,8 +186,8 @@ void loop() {
     cmd.trim();
     cmd.toLowerCase();
     if (cmd == "ota" || cmd == "/update" || cmd == "update") {
-      Serial.println("[CMD] /update triggered -> checking GitHub");
-      checkForUpdate();
+      Serial.println("[CMD] /update triggered -> checking GitHub + flashing");
+      checkForUpdate(true); // manual always installs
     } else if (cmd == "version" || cmd == "/version") {
       Serial.printf("FW: %s\n", FW_VERSION);
     } else if (cmd.length() > 0) {
