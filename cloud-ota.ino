@@ -177,7 +177,14 @@ void loop() {
   if (Serial.available()) {
     String cmd = Serial.readStringUntil('\n');
     cmd.trim();
-    if (cmd == "ota") checkForUpdate();
-    if (cmd == "version") Serial.printf("FW: %s\n", FW_VERSION);
+    cmd.toLowerCase();
+    if (cmd == "ota" || cmd == "/update" || cmd == "update") {
+      Serial.println("[CMD] /update triggered -> checking GitHub");
+      checkForUpdate();
+    } else if (cmd == "version" || cmd == "/version") {
+      Serial.printf("FW: %s\n", FW_VERSION);
+    } else if (cmd.length() > 0) {
+      Serial.printf("[CMD] Unknown '%s' | try: /update, version\n", cmd.c_str());
+    }
   }
 }
