@@ -12,7 +12,7 @@
 #define OTA_CHECK_INTERVAL  3000
 
 // Current firmware version - BUMP THIS ON EVERY RELEASE
-#define FW_VERSION      "0.0.1"
+#define FW_VERSION      "0.0.2"
 
 // Set to true to skip cert validation (easiest, works behind GitHub CDN)
 // For production use set to false and add root CA

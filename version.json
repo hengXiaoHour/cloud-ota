@@ -1,5 +1,5 @@
 {
-  "version": "0.0.1",
-  "bin_url": "https://github.com/hengXiaoHour/cloud-ota/releases/download/v0.0.1/firmware.bin",
-  "notes": "Auto release 0.0.1"
+  "version": "0.0.2",
+  "bin_url": "https://github.com/hengXiaoHour/cloud-ota/releases/download/v0.0.2/firmware.bin",
+  "notes": "OTA 0.0.2"
 }
