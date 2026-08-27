@@ -1,0 +1,74 @@
+name: Build and OTA Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (e.g. 1.0.2)'
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Arduino CLI
+        uses: arduino/setup-arduino-cli@v1
+
+      - name: Install ESP32 core + libs
+        run: |
+          arduino-cli core update-index
+          arduino-cli core install esp32:esp32
+          arduino-cli lib install ArduinoJson
+
+      - name: Set version from tag/input
+        id: ver
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VER="${{ inputs.version }}"
+          else
+            VER="${GITHUB_REF#refs/tags/v}"
+          fi
+          echo "version=$VER" >> $GITHUB_OUTPUT
+          echo "Version: $VER"
+          sed -i "s/#define FW_VERSION.*/#define FW_VERSION      \"$VER\"/" config.h
+          cat config.h
+
+      - name: Build firmware (arduino-cli)
+        run: |
+          arduino-cli compile --fqbn esp32:esp32:esp32 --output-dir ./build .
+          ls -lh ./build/*.bin
+          cp ./build/*.bin firmware.bin || cp ./build/cloud-ota.ino.bin firmware.bin
+          ls -lh firmware.bin
+
+      - name: Update version.json
+        run: |
+          VER="${{ steps.ver.outputs.version }}"
+          REPO="${{ github.repository }}"
+          cat > version.json <<EOF
+          {
+            "version": "$VER",
+            "bin_url": "https://github.com/$REPO/releases/download/v$VER/firmware.bin",
+            "notes": "Auto release $VER"
+          }
+          EOF
+          cat version.json
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add version.json
+          git commit -m "chore: bump version.json to $VER [skip ci]" || echo "no changes"
+          git push origin HEAD:main || echo "push failed - check branch protection"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.ver.outputs.version }}
+          name: v${{ steps.ver.outputs.version }}
+          files: firmware.bin
+          generate_release_notes: true

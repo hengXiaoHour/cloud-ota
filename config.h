@@ -1,0 +1,22 @@
+#pragma once
+
+// ========= EDIT THESE =========
+#define WIFI_SSID       "YOUR_WIFI_SSID"
+#define WIFI_PASSWORD   "YOUR_WIFI_PASSWORD"
+
+// Raw URL to version.json on main branch (ALWAYS points to latest)
+// Get this from GitHub: open version.json -> Raw -> copy URL
+#define VERSION_URL     "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/version.json"
+
+// How often to check for update (ms)
+#define OTA_CHECK_INTERVAL  30000
+
+// Current firmware version - BUMP THIS ON EVERY RELEASE
+#define FW_VERSION      "1.0.0"
+
+// Set to true to skip cert validation (easiest, works behind GitHub CDN)
+// For production use set to false and add root CA
+#define USE_INSECURE    true
+
+// LED pin for status (2 = built-in on many devkits, set -1 to disable)
+#define LED_PIN         2
