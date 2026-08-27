@@ -57,32 +57,33 @@ bool checkForUpdate() {
   Serial.printf("\n[OTA] Checking %s\n", VERSION_URL);
   Serial.printf("[OTA] Current FW: %s\n", FW_VERSION);
 
-  WiFiClientSecure *client = new WiFiClientSecure();
-  if (USE_INSECURE) {
-    client->setInsecure();
-  }
+  String payload;
+  {
+    WiFiClientSecure client;
+    if (USE_INSECURE) {
+      client.setInsecure();
+    }
+    client.setTimeout(15000);
 
-  HTTPClient http;
-  http.setTimeout(15000);
-  http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+    HTTPClient http;
+    http.setTimeout(15000);
+    http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
 
-  if (!http.begin(*client, VERSION_URL)) {
-    Serial.println("[OTA] http.begin failed");
-    delete client;
-    return false;
-  }
+    if (!http.begin(client, VERSION_URL)) {
+      Serial.println("[OTA] http.begin failed");
+      return false;
+    }
 
-  int code = http.GET();
-  if (code != 200) {
-    Serial.printf("[OTA] version.json GET failed: %d %s\n", code, http.errorToString(code).c_str());
+    int code = http.GET();
+    if (code != 200) {
+      Serial.printf("[OTA] version.json GET failed: %d %s\n", code, http.errorToString(code).c_str());
+      http.end();
+      return false;
+    }
+
+    payload = http.getString();
     http.end();
-    delete client;
-    return false;
-  }
-
-  String payload = http.getString();
-  http.end();
-  delete client;
+  } // http & client destroyed here in correct order
 
   Serial.printf("[OTA] version.json: %s\n", payload.c_str());
 
@@ -112,32 +113,31 @@ bool checkForUpdate() {
 
   if (LED_PIN >= 0) pinMode(LED_PIN, OUTPUT);
 
-  WiFiClientSecure *otaClient = new WiFiClientSecure();
-  if (USE_INSECURE) otaClient->setInsecure();
-  otaClient->setTimeout(30);
+  {
+    WiFiClientSecure otaClient;
+    if (USE_INSECURE) otaClient.setInsecure();
+    otaClient.setTimeout(30);
 
-  httpUpdate.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
-  httpUpdate.setLedPin(LED_PIN, LOW);
-  httpUpdate.rebootOnUpdate(false);
+    httpUpdate.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+    httpUpdate.setLedPin(LED_PIN, LOW);
+    httpUpdate.rebootOnUpdate(false);
 
-  t_httpUpdate_return ret = httpUpdate.update(*otaClient, binUrl);
+    t_httpUpdate_return ret = httpUpdate.update(otaClient, binUrl);
 
-  switch (ret) {
-    case HTTP_UPDATE_FAILED:
-      Serial.printf("[OTA] FAILED Error %d: %s\n", httpUpdate.getLastError(), httpUpdate.getLastErrorString().c_str());
-      delete otaClient;
-      return false;
-    case HTTP_UPDATE_NO_UPDATES:
-      Serial.println("[OTA] No updates");
-      delete otaClient;
-      return false;
-    case HTTP_UPDATE_OK:
-      Serial.println("[OTA] SUCCESS - Rebooting in 2s");
-      delay(2000);
-      ESP.restart();
-      break;
+    switch (ret) {
+      case HTTP_UPDATE_FAILED:
+        Serial.printf("[OTA] FAILED Error %d: %s\n", httpUpdate.getLastError(), httpUpdate.getLastErrorString().c_str());
+        return false;
+      case HTTP_UPDATE_NO_UPDATES:
+        Serial.println("[OTA] No updates");
+        return false;
+      case HTTP_UPDATE_OK:
+        Serial.println("[OTA] SUCCESS - Rebooting in 2s");
+        delay(2000);
+        ESP.restart();
+        break;
+    }
   }
-  delete otaClient;
   return true;
 }
 
