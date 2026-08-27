@@ -6,7 +6,7 @@
 
 // Raw URL to version.json on main branch (ALWAYS points to latest)
 // Get this from GitHub: open version.json -> Raw -> copy URL
-#define VERSION_URL     "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/version.json"
+#define VERSION_URL     "https://raw.githubusercontent.com/hengXiaoHour/cloud-ota/main/version.json"
 
 // How often to check for update (ms)
 #define OTA_CHECK_INTERVAL  30000
