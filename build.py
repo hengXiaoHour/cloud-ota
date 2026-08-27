@@ -36,15 +36,17 @@ def bump_patch(v):
 
 def find_bin():
     build_dir = ROOT / "build"
-    cands = list(build_dir.glob("*.bin"))
-    if not cands:
-        cands = list(ROOT.glob("*.bin"))
-    if not cands:
-        return None
-    for p in cands:
-        if "cloud-ota" in p.name:
-            return p
-    return cands[0]
+    # Prefer exact cloud-ota.ino.bin, never merged/bootloader/partitions
+    exact = build_dir / "cloud-ota.ino.bin"
+    if exact.exists():
+        return exact
+    # fallback: any .bin excluding merged/bootloader/partitions
+    cands = [p for p in build_dir.glob("*.bin") if "merged" not in p.name and "bootloader" not in p.name and "partitions" not in p.name]
+    if cands:
+        return cands[0]
+    # last resort
+    all_cands = list(build_dir.glob("*.bin"))
+    return all_cands[0] if all_cands else None
 
 def main():
     parser = argparse.ArgumentParser(description="Build + push OTA")
@@ -79,7 +81,7 @@ def main():
     if not bin_path or not bin_path.exists():
         print(f"ERROR: .bin not found in ./build.")
         sys.exit(1)
-    print(f"✓ bin: {bin_path} ({bin_path.stat().st_size} bytes)")
+    print(f"✓ bin: {bin_path} ({bin_path.stat().st_size} bytes) - correct (not merged)")
 
     fw_bin = ROOT / "firmware.bin"
     shutil.copy(bin_path, fw_bin)
@@ -95,7 +97,7 @@ def main():
     data = {
         "version": new_ver,
         "bin_url": f"https://github.com/{repo}/releases/download/v{new_ver}/firmware.bin",
-        "notes": f"OTA {new_ver}"
+        "notes": f"OTA {new_ver} - manual /update"
     }
     VERSION_JSON.write_text(json.dumps(data, indent=2) + "\n")
     print(VERSION_JSON.read_text())
@@ -112,25 +114,20 @@ def main():
         run(["git", "push", "origin", "main"])
         run(["git", "push", "origin", f"v{new_ver}"])
         print(f"\n✓ Pushed tag v{new_ver}. Watch https://github.com/{repo}/actions")
-        print(f"  ESP32 will see update next poll ({repo}) - auto-flash={open(CONFIG).read().count('AUTO_OTA            true')>0}")
         return
 
-    # Default: instant local release via gh
     print(f"\n[3/3] Git commit + instant gh release (no wait) ...")
     run(["git", "add", "config.h", "version.json"])
     subprocess.run(["git", "commit", "-m", f"chore: bump OTA to {new_ver}"], cwd=ROOT)
     run(["git", "push", "origin", "main"])
-    # create release directly with local bin
     if shutil.which("gh") is None:
         print("ERROR: gh CLI not found, falling back to tag push")
         run(["git", "tag", f"v{new_ver}"], check=False)
         run(["git", "push", "origin", f"v{new_ver}"])
         sys.exit(1)
-    # remove existing tag if local tag exists to avoid conflict
     subprocess.run(["git", "tag", "-d", f"v{new_ver}"], cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     print(f"Creating release v{new_ver} with {fw_bin} ...")
-    # gh release create will create tag automatically
-    result = subprocess.run(["gh", "release", "create", f"v{new_ver}", str(fw_bin), "--title", f"v{new_ver}", "--notes", f"OTA {new_ver} (local build, AUTO_OTA=false -> type /update)", "--target", "main"], cwd=ROOT)
+    result = subprocess.run(["gh", "release", "create", f"v{new_ver}", str(fw_bin), "--title", f"v{new_ver}", "--notes", f"OTA {new_ver} - manual /update, 30s poll, AUTO_OTA=false", "--target", "main"], cwd=ROOT)
     if result.returncode != 0:
         print("gh release failed (maybe tag exists). Trying to upload asset to existing release...")
         run(["gh", "release", "upload", f"v{new_ver}", str(fw_bin), "--clobber"], check=False)
