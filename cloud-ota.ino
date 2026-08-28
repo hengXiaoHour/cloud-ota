@@ -68,11 +68,16 @@ bool checkForUpdate(bool doInstall = true) {
     HTTPClient http;
     http.setTimeout(15000);
     http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+    // Cache bust: avoid GitHub raw CDN stale (5min)
+    String url = String(VERSION_URL) + "?t=" + String(millis());
+    Serial.printf("[OTA] Fetching (cache-bust) %s\n", url.c_str());
 
-    if (!http.begin(client, VERSION_URL)) {
+    if (!http.begin(client, url)) {
       Serial.println("[OTA] http.begin failed");
       return false;
     }
+    http.addHeader("Cache-Control", "no-cache");
+    http.addHeader("Pragma", "no-cache");
 
     int code = http.GET();
     if (code != 200) {
