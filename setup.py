@@ -33,13 +33,6 @@ def ask(prompt, default, hide=False):
     raw = input(f"{prompt} [{shown}]: ").strip()
     return raw if raw != "" else default
 
-def bump_patch(v):
-    try:
-        a,b,c = [int(x) for x in v.split(".")]
-        return f"{a}.{b}.{c+1}"
-    except:
-        return v
-
 def main():
     if EXAMPLE.exists() and not CONFIG.exists():
         CONFIG.write_text(EXAMPLE.read_text())
@@ -53,15 +46,18 @@ def main():
     print(f"Editing: {CONFIG}\nLeave empty to keep current value.")
     print("WiFi is NOT configured here — it lives in NVS on the board (serial: setwifi).\n")
 
-    url = ask("1/5 VERSION_URL (raw GitHub URL to version.json)", cur["VERSION_URL"])
-    fw = ask("2/5 FW_VERSION (e.g. 1.0.1)", cur["FW_VERSION"])
-    interval = ask("3/5 OTA_CHECK_INTERVAL ms (30000=30s, 3600000=1h)", cur["OTA_CHECK_INTERVAL"])
-    insecure = ask("4/5 USE_INSECURE (true/false, true=skip cert check)", cur["USE_INSECURE"])
-    led = ask("5/5 LED_PIN (-1 to disable, 2=built-in)", cur["LED_PIN"])
+    url = ask("1/6 VERSION_URL (raw GitHub URL to version.json)", cur["VERSION_URL"])
+    fw = ask("2/6 FW_VERSION (e.g. 1.0.1)", cur["FW_VERSION"])
+    auto_ota = ask("3/6 AUTO_OTA (true=auto-flash on poll, false=notify only, needs /update)", cur["AUTO_OTA"])
+    interval = ask("4/6 OTA_CHECK_INTERVAL ms (30000=30s, 3600000=1h)", cur["OTA_CHECK_INTERVAL"])
+    insecure = ask("5/6 USE_INSECURE (true/false, true=skip cert check)", cur["USE_INSECURE"])
+    led = ask("6/6 LED_PIN (-1 to disable, 2=built-in)", cur["LED_PIN"])
 
     # validation
     if not re.match(r'^\d+\.\d+\.\d+$', fw):
         print(f"WARNING: FW_VERSION '{fw}' not in x.y.z format")
+    if auto_ota not in ("true", "false"):
+        print(f"WARNING: AUTO_OTA '{auto_ota}' should be true or false")
     if url and "raw.githubusercontent.com" not in url:
         print(f"WARNING: VERSION_URL doesn't look like raw.githubusercontent.com: {url}")
 
@@ -69,6 +65,7 @@ def main():
     replacements = {
         r'#define\s+VERSION_URL\s+"[^"]*"': f'#define VERSION_URL     "{url}"',
         r'#define\s+FW_VERSION\s+"[^"]*"': f'#define FW_VERSION      "{fw}"',
+        r'#define\s+AUTO_OTA\s+\w+': f'#define AUTO_OTA            {auto_ota}',
         r'#define\s+OTA_CHECK_INTERVAL\s+\d+': f'#define OTA_CHECK_INTERVAL  {interval}',
         r'#define\s+USE_INSECURE\s+\w+': f'#define USE_INSECURE    {insecure}',
         r'#define\s+LED_PIN\s+-?\d+': f'#define LED_PIN         {led}',
