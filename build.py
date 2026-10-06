@@ -97,7 +97,7 @@ def main():
     data = {
         "version": new_ver,
         "bin_url": f"https://github.com/{repo}/releases/download/v{new_ver}/firmware.bin",
-        "notes": f"OTA {new_ver} - manual update"
+        "notes": f"Auto release {new_ver}"
     }
     VERSION_JSON.write_text(json.dumps(data, indent=2) + "\n")
     print(VERSION_JSON.read_text())
