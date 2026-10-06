@@ -213,7 +213,7 @@ void handleCommand(String cmd) {
 
   if (lower == "ota" || lower == "update") {
     Serial.println("[CMD] update triggered -> checking GitHub + flashing");
-    checkForUpdate(true); // manual always installs
+    checkForUpdate(true, true); // manual always installs, always verbose
   } else if (lower == "version") {
     Serial.printf("FW: %s\n", FW_VERSION);
   } else if (lower == "status") {
@@ -294,8 +294,9 @@ void loop() {
 
   if (gSsid.length() > 0 && millis() - lastCheck > OTA_CHECK_INTERVAL) {
     lastCheck = millis();
-    // Periodic check respects AUTO_OTA: false = notify only, true = auto-flash
-    checkForUpdate(AUTO_OTA);
+    // Periodic check respects AUTO_OTA: false = notify only, true = auto-flash.
+    // Quiet unless status mode is on; new-version alerts always print.
+    checkForUpdate(AUTO_OTA, gShowStatus);
   }
 
   if (Serial.available()) {
