@@ -247,7 +247,7 @@ void handleCommand(String cmd) {
       ESP.restart();
     }
   } else {
-    Serial.printf("[CMD] Unknown '%s' | try: /update, version, wifi, setwifi, clearwifi\n", cmd.c_str());
+    Serial.printf("[CMD] Unknown '%s' | try: /update, version, status, wifi, setwifi, clearwifi\n", cmd.c_str());
   }
 }
 
