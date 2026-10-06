@@ -122,7 +122,7 @@ bool checkForUpdate(bool doInstall = true, bool verbose = false) {
     http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
     // Cache bust: avoid GitHub raw CDN stale (5min)
     String url = String(VERSION_URL) + "?t=" + String(millis());
-    Serial.printf("[OTA] Fetching (cache-bust) %s\n", url.c_str());
+    if (v) Serial.printf("[OTA] Fetching (cache-bust) %s\n", url.c_str());
 
     if (!http.begin(client, url)) {
       Serial.println("[OTA] http.begin failed");
@@ -142,7 +142,7 @@ bool checkForUpdate(bool doInstall = true, bool verbose = false) {
     http.end();
   } // http & client destroyed here in correct order
 
-  Serial.printf("[OTA] version.json: %s\n", payload.c_str());
+  if (v) Serial.printf("[OTA] version.json: %s\n", payload.c_str());
 
   JsonDocument doc;
   DeserializationError err = deserializeJson(doc, payload);
@@ -160,7 +160,7 @@ bool checkForUpdate(bool doInstall = true, bool verbose = false) {
 
   int cmp = compareVersion(FW_VERSION, latest);
   if (cmp >= 0) {
-    Serial.printf("[OTA] Already on latest (%s >= %s)\n", FW_VERSION, latest.c_str());
+    if (v) Serial.printf("[OTA] Already on latest (%s >= %s)\n", FW_VERSION, latest.c_str());
     return false;
   }
 
