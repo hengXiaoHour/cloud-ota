@@ -1,10 +1,8 @@
 #pragma once
 
-// ========= EDIT THESE (local only — this file is gitignored, never committed) =========
-// Copy this file to config.h and fill in your real values:
-//   cp config.example.h config.h
-#define WIFI_SSID       "YOUR_WIFI"
-#define WIFI_PASSWORD   "YOUR_PASS"
+// WiFi credentials are NOT stored here — they live in NVS flash on the board,
+// provisioned once over serial with:  setwifi <ssid> <password>
+// Copy this file to config.h and set VERSION_URL below. No secrets in either file.
 
 // Raw URL to version.json on main branch (ALWAYS points to latest)
 // Get this from GitHub: open version.json -> Raw -> copy URL
