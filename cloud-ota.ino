@@ -18,6 +18,18 @@ String gSsid = "";
 String gPass = "";
 unsigned long lastCheck = 0;
 bool gShowStatus = false; // serial `status` toggles the [Loop] line on/off
+int gLastPct = -1;        // last printed OTA progress %, reset before each flash
+
+// Progress callback for httpUpdate: prints every 5% + 100% so the
+// board doesn't look dead during the ~1MB download/flash.
+void onOtaProgress(size_t cur, size_t total) {
+  if (total == 0) return;
+  int pct = (cur * 100) / total;
+  if (pct != gLastPct && (pct % 5 == 0 || pct == 100)) {
+    gLastPct = pct;
+    Serial.printf("[OTA] Flashing... %d%% (%u/%u bytes)\n", pct, (unsigned)cur, (unsigned)total);
+  }
+}
 
 // Simple semantic version compare: returns -1 if a<b, 0 if equal, 1 if a>b
 int compareVersion(String a, String b) {
@@ -185,6 +197,8 @@ bool checkForUpdate(bool doInstall = true, bool verbose = false) {
     httpUpdate.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
     httpUpdate.setLedPin(LED_PIN, LOW);
     httpUpdate.rebootOnUpdate(false);
+    httpUpdate.onProgress(onOtaProgress);
+    gLastPct = -1;
 
     t_httpUpdate_return ret = httpUpdate.update(otaClient, binUrl);
 
