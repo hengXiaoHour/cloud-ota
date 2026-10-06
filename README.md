@@ -24,10 +24,24 @@ arduino-cli lib install ArduinoJson
 
 ```bash
 cp config.example.h config.h
-python3 setup.py   # fills WiFi + VERSION_URL into config.h (gitignored, never pushed)
+python3 setup.py   # fills VERSION_URL into config.h (gitignored, never pushed)
 ```
-`config.h` is local-only. CI builds its own from GitHub Secrets `WIFI_SSID` / `WIFI_PASSWORD` (repo Settings -> Secrets -> Actions).
+`config.h` holds NO secrets — WiFi lives in NVS on the board (see below).
+No GitHub Secrets needed: CI builds `config.h` from the template, nothing secret in it.
 Edit `version.json` -> replace `YOUR_USERNAME/YOUR_REPO`.
+
+### 2b. WiFi provisioning (serial, once per board)
+
+After flashing, open the monitor and type:
+
+```
+setwifi <ssid> <password>   # password = last word, so the SSID may contain spaces
+wifi                        # show SSID + status (password is never printed)
+clearwifi                   # erase credentials from NVS + reboot to provisioning
+```
+
+The board saves to NVS, reboots, and connects. Wrong password? Just `setwifi` again —
+no reflash needed. `firmware.bin` never contains your password, so public releases are safe.
 
 ### 3. First Flash (USB needed once)
 
