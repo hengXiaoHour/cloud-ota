@@ -9,7 +9,7 @@
 #define VERSION_URL     "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/version.json"
 
 // How often to auto-check for update (ms) — only notifies if AUTO_OTA false
-#define OTA_CHECK_INTERVAL  30000
+#define OTA_CHECK_INTERVAL  10000
 
 // If true, periodic check auto-flashes. If false, it only NOTIFIES and needs "update"
 #define AUTO_OTA            false

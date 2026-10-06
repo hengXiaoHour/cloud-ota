@@ -127,12 +127,12 @@ def main():
         sys.exit(1)
     subprocess.run(["git", "tag", "-d", f"v{new_ver}"], cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     print(f"Creating release v{new_ver} with {fw_bin} ...")
-    result = subprocess.run(["gh", "release", "create", f"v{new_ver}", str(fw_bin), "--title", f"v{new_ver}", "--notes", f"OTA {new_ver} - manual update, 30s poll, AUTO_OTA=false", "--target", "main"], cwd=ROOT)
+    result = subprocess.run(["gh", "release", "create", f"v{new_ver}", str(fw_bin), "--title", f"v{new_ver}", "--notes", f"OTA {new_ver} - manual update, 10s poll, AUTO_OTA=false", "--target", "main"], cwd=ROOT)
     if result.returncode != 0:
         print("gh release failed (maybe tag exists). Trying to upload asset to existing release...")
         run(["gh", "release", "upload", f"v{new_ver}", str(fw_bin), "--clobber"], check=False)
     print(f"\n✓ Done! Release v{new_ver} ready: https://github.com/{repo}/releases/tag/v{new_ver}")
-    print(f"  ESP32 (FW {cur}) will show: 'New version available! Type update to flash' on next poll (30s)")
+    print(f"  ESP32 (FW {cur}) will show: 'New version available! Type update to flash' on next poll (10s)")
     print(f"  Trigger: open serial monitor -> type update")
 
 if __name__ == "__main__":
