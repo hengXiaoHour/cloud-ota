@@ -69,7 +69,8 @@ git push origin main --tags
 ```
 cloud-ota/
 ├── cloud-ota.ino               # sketch (main code)
-├── config.h                    # WIFI + VERSION_URL + FW_VERSION
+├── config.h                    # LOCAL ONLY, gitignored (copy from config.example.h)
+├── config.example.h            # tracked template (placeholders only)
 ├── version.json                # polled by ESP32
 └── .github/workflows/build-and-release.yml  # arduino-cli build on tag
 ```
