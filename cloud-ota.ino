@@ -17,6 +17,7 @@ Preferences prefs;
 String gSsid = "";
 String gPass = "";
 unsigned long lastCheck = 0;
+bool gShowStatus = false; // serial `status` toggles the [Loop] line on/off
 
 // Simple semantic version compare: returns -1 if a<b, 0 if equal, 1 if a>b
 int compareVersion(String a, String b) {
