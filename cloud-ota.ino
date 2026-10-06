@@ -3,8 +3,19 @@
 #include <HTTPClient.h>
 #include <HTTPUpdate.h>
 #include <ArduinoJson.h>
+#include <Preferences.h>
 #include "config.h"
 
+// WiFi credentials live in NVS flash (namespace "cloud-ota"),
+// provisioned once over serial with:  setwifi <ssid> <password>
+// Nothing secret stays in config.h, git history, or firmware.bin.
+#define NVS_NS   "cloud-ota"
+#define NVS_SSID "ssid"
+#define NVS_PASS "pass"
+
+Preferences prefs;
+String gSsid = "";
+String gPass = "";
 unsigned long lastCheck = 0;
 
 // Simple semantic version compare: returns -1 if a<b, 0 if equal, 1 if a>b
@@ -30,11 +41,43 @@ int compareVersion(String a, String b) {
   return 0;
 }
 
+// Load credentials from NVS into gSsid/gPass. True if usable.
+bool loadWiFi() {
+  gSsid = prefs.getString(NVS_SSID, "");
+  gPass = prefs.getString(NVS_PASS, "");
+  gSsid.trim();
+  return gSsid.length() > 0 && gPass.length() > 0;
+}
+
+void saveWiFi(const String& ssid, const String& pass) {
+  prefs.putString(NVS_SSID, ssid);
+  prefs.putString(NVS_PASS, pass);
+  gSsid = ssid;
+  gPass = pass;
+}
+
+void clearWiFi() {
+  prefs.remove(NVS_SSID);
+  prefs.remove(NVS_PASS);
+  gSsid = "";
+  gPass = "";
+}
+
+void printProvisionHelp() {
+  Serial.println("[WiFi] No credentials in NVS.");
+  Serial.println("[WiFi] Provision over serial: setwifi <ssid> <password>");
+  Serial.println("[WiFi] (password = last word, so the SSID may contain spaces)");
+}
+
 void connectWiFi() {
+  if (gSsid.length() == 0) {
+    printProvisionHelp();
+    return;
+  }
   if (WiFi.status() == WL_CONNECTED) return;
-  Serial.printf("[WiFi] Connecting to %s\n", WIFI_SSID);
+  Serial.printf("[WiFi] Connecting to %s\n", gSsid.c_str());
   WiFi.mode(WIFI_STA);
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  WiFi.begin(gSsid.c_str(), gPass.c_str());
   int tries = 0;
   while (WiFi.status() != WL_CONNECTED && tries < 20) {
     delay(500);
@@ -44,11 +87,15 @@ void connectWiFi() {
   if (WiFi.status() == WL_CONNECTED) {
     Serial.printf("\n[WiFi] Connected! IP: %s\n", WiFi.localIP().toString().c_str());
   } else {
-    Serial.println("\n[WiFi] FAILED - will retry");
+    Serial.println("\n[WiFi] FAILED - check SSID/password, re-run setwifi");
   }
 }
 
 bool checkForUpdate(bool doInstall = true) {
+  if (gSsid.length() == 0) {
+    printProvisionHelp();
+    return false;
+  }
   if (WiFi.status() != WL_CONNECTED) {
     connectWiFi();
     if (WiFi.status() != WL_CONNECTED) return false;
@@ -151,6 +198,55 @@ bool checkForUpdate(bool doInstall = true) {
   return true;
 }
 
+// NOTE: the raw line is kept case-intact (SSID/password are case-sensitive).
+// Only a lowercase copy is used to match the command word.
+void handleCommand(String cmd) {
+  cmd.trim();
+  if (cmd.length() == 0) return;
+  String lower = cmd;
+  lower.toLowerCase();
+
+  if (lower == "ota" || lower == "/update" || lower == "update") {
+    Serial.println("[CMD] /update triggered -> checking GitHub + flashing");
+    checkForUpdate(true); // manual always installs
+  } else if (lower == "version" || lower == "/version") {
+    Serial.printf("FW: %s\n", FW_VERSION);
+  } else if (lower == "wifi" || lower == "/wifi" || lower == "showwifi") {
+    if (gSsid.length() == 0) {
+      printProvisionHelp();
+    } else {
+      // SSID is shown, password NEVER is (only its length).
+      Serial.printf("[WiFi] SSID \"%s\", password set (%d chars), status %s\n",
+        gSsid.c_str(), gPass.length(),
+        WiFi.status() == WL_CONNECTED ? "connected" : "not connected");
+    }
+  } else if (lower == "clearwifi" || lower == "/clearwifi") {
+    clearWiFi();
+    Serial.println("[WiFi] Credentials erased from NVS. Rebooting to provisioning...");
+    delay(1000);
+    ESP.restart();
+  } else if (lower == "setwifi" || lower.startsWith("setwifi ")) {
+    // Password = last word, SSID = everything between command and password,
+    // so SSIDs with spaces (e.g. "Ee Ourng secret123") work.
+    int lastSp = cmd.lastIndexOf(' ');
+    String ssid = (lastSp > 8) ? cmd.substring(8, lastSp) : "";
+    String pass = (lastSp > 8) ? cmd.substring(lastSp + 1) : "";
+    ssid.trim();
+    pass.trim();
+    if (ssid.length() == 0 || pass.length() == 0) {
+      Serial.println("[CMD] Usage: setwifi <ssid> <password>  (password is the last word)");
+    } else {
+      saveWiFi(ssid, pass);
+      Serial.printf("[CMD] Saved SSID \"%s\" (password %d chars, not shown). Rebooting to connect...\n",
+        ssid.c_str(), pass.length());
+      delay(1000);
+      ESP.restart();
+    }
+  } else {
+    Serial.printf("[CMD] Unknown '%s' | try: /update, version, wifi, setwifi, clearwifi\n", cmd.c_str());
+  }
+}
+
 void setup() {
   Serial.begin(115200);
   delay(500);
@@ -163,9 +259,15 @@ void setup() {
     digitalWrite(LED_PIN, LOW);
   }
 
-  connectWiFi();
-  // On boot: only check, don't auto-flash if AUTO_OTA=false — user must send /update
-  checkForUpdate(AUTO_OTA);
+  prefs.begin(NVS_NS, false);
+  if (!loadWiFi()) {
+    printProvisionHelp();
+  } else {
+    Serial.printf("[WiFi] Loaded SSID \"%s\" from NVS (password hidden)\n", gSsid.c_str());
+    connectWiFi();
+    // On boot: only check, don't auto-flash if AUTO_OTA=false — user must send /update
+    checkForUpdate(AUTO_OTA);
+  }
   lastCheck = millis();
 }
 
@@ -180,7 +282,7 @@ void loop() {
     if (LED_PIN >= 0) digitalWrite(LED_PIN, !digitalRead(LED_PIN));
   }
 
-  if (millis() - lastCheck > OTA_CHECK_INTERVAL) {
+  if (gSsid.length() > 0 && millis() - lastCheck > OTA_CHECK_INTERVAL) {
     lastCheck = millis();
     // Periodic check respects AUTO_OTA: false = notify only, true = auto-flash
     checkForUpdate(AUTO_OTA);
@@ -188,15 +290,6 @@ void loop() {
 
   if (Serial.available()) {
     String cmd = Serial.readStringUntil('\n');
-    cmd.trim();
-    cmd.toLowerCase();
-    if (cmd == "ota" || cmd == "/update" || cmd == "update") {
-      Serial.println("[CMD] /update triggered -> checking GitHub + flashing");
-      checkForUpdate(true); // manual always installs
-    } else if (cmd == "version" || cmd == "/version") {
-      Serial.printf("FW: %s\n", FW_VERSION);
-    } else if (cmd.length() > 0) {
-      Serial.printf("[CMD] Unknown '%s' | try: /update, version\n", cmd.c_str());
-    }
+    handleCommand(cmd);
   }
 }
