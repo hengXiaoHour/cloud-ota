@@ -92,7 +92,7 @@ void connectWiFi() {
   }
 }
 
-bool checkForUpdate(bool doInstall = true) {
+bool checkForUpdate(bool doInstall = true, bool verbose = false) {
   if (gSsid.length() == 0) {
     printProvisionHelp();
     return false;
@@ -102,8 +102,12 @@ bool checkForUpdate(bool doInstall = true) {
     if (WiFi.status() != WL_CONNECTED) return false;
   }
 
-  Serial.printf("\n[OTA] Checking %s\n", VERSION_URL);
-  Serial.printf("[OTA] Current FW: %s\n", FW_VERSION);
+  // Routine chatter only when asked (manual trigger) or status mode is on.
+  // New-version alerts, flash progress, and errors always print.
+  bool v = verbose || gShowStatus;
+
+  if (v) Serial.printf("\n[OTA] Checking %s\n", VERSION_URL);
+  if (v) Serial.printf("[OTA] Current FW: %s\n", FW_VERSION);
 
   String payload;
   {
