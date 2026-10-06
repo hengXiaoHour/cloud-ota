@@ -19,6 +19,7 @@ def read_config():
     return {
         "VERSION_URL": get(r'#define\s+VERSION_URL\s+"([^"]*)"'),
         "FW_VERSION": get(r'#define\s+FW_VERSION\s+"([^"]*)"'),
+        "AUTO_OTA": get(r'#define\s+AUTO_OTA\s+(\w+)'),
         "OTA_CHECK_INTERVAL": get(r'#define\s+OTA_CHECK_INTERVAL\s+(\d+)'),
         "USE_INSECURE": get(r'#define\s+USE_INSECURE\s+(\w+)'),
         "LED_PIN": get(r'#define\s+LED_PIN\s+(-?\d+)'),
