@@ -42,7 +42,7 @@ def bump_patch(v):
 def main():
     if EXAMPLE.exists() and not CONFIG.exists():
         CONFIG.write_text(EXAMPLE.read_text())
-        print(f"Created {CONFIG} from {EXAMPLE.name} — fill in your WiFi.")
+        print(f"Created {CONFIG} from {EXAMPLE.name} — run setup.py to configure.")
     if not CONFIG.exists():
         print(f"ERROR: {CONFIG} not found (and no {EXAMPLE.name} to copy)")
         sys.exit(1)

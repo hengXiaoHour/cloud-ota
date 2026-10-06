@@ -27,16 +27,11 @@ jobs:
           arduino-cli core install esp32:esp32
           arduino-cli lib install ArduinoJson
 
-      - name: Create config.h from secrets (config.h is gitignored)
+      - name: Create config.h from template (no secrets anywhere in repo)
         run: |
           cp config.example.h config.h
-          sed -i 's/#define WIFI_SSID.*/#define WIFI_SSID       "'"$WIFI_SSID"'"/' config.h
-          sed -i 's/#define WIFI_PASSWORD.*/#define WIFI_PASSWORD   "'"$WIFI_PASS"'"/' config.h
           sed -i 's|#define VERSION_URL.*|#define VERSION_URL     "https://raw.githubusercontent.com/${{ github.repository }}/main/version.json"|' config.h
-          cat config.h | sed -e 's/"'"$WIFI_PASS"'"/"***"/'
-        env:
-          WIFI_SSID: ${{ secrets.WIFI_SSID }}
-          WIFI_PASS: ${{ secrets.WIFI_PASSWORD }}
+          cat config.h
 
       - name: Set version from tag/input
         id: ver
