@@ -163,7 +163,7 @@ bool checkForUpdate(bool doInstall = true) {
   Serial.printf("[OTA] NEW VERSION! %s -> %s\n", FW_VERSION, latest.c_str());
   Serial.printf("[OTA] Bin URL: %s\n", binUrl.c_str());
   if (!doInstall) {
-    Serial.println("[OTA] >>> New version available! Type /update to flash <<<");
+    Serial.println("[OTA] >>> New version available! Type update to flash <<<");
     Serial.printf("[OTA] Current: %s | Available: %s\n", FW_VERSION, latest.c_str());
     return false;
   }
@@ -207,15 +207,15 @@ void handleCommand(String cmd) {
   String lower = cmd;
   lower.toLowerCase();
 
-  if (lower == "ota" || lower == "/update" || lower == "update") {
-    Serial.println("[CMD] /update triggered -> checking GitHub + flashing");
+  if (lower == "ota" || lower == "update") {
+    Serial.println("[CMD] update triggered -> checking GitHub + flashing");
     checkForUpdate(true); // manual always installs
-  } else if (lower == "version" || lower == "/version") {
+  } else if (lower == "version") {
     Serial.printf("FW: %s\n", FW_VERSION);
-  } else if (lower == "status" || lower == "/status") {
+  } else if (lower == "status") {
     gShowStatus = !gShowStatus;
     Serial.printf("[CMD] Status line %s\n", gShowStatus ? "ON" : "OFF");
-  } else if (lower == "wifi" || lower == "/wifi" || lower == "showwifi") {
+  } else if (lower == "wifi" || lower == "showwifi") {
     if (gSsid.length() == 0) {
       printProvisionHelp();
     } else {
@@ -224,7 +224,7 @@ void handleCommand(String cmd) {
         gSsid.c_str(), gPass.length(),
         WiFi.status() == WL_CONNECTED ? "connected" : "not connected");
     }
-  } else if (lower == "clearwifi" || lower == "/clearwifi") {
+  } else if (lower == "clearwifi") {
     clearWiFi();
     Serial.println("[WiFi] Credentials erased from NVS. Rebooting to provisioning...");
     delay(1000);
@@ -247,7 +247,7 @@ void handleCommand(String cmd) {
       ESP.restart();
     }
   } else {
-    Serial.printf("[CMD] Unknown '%s' | try: /update, version, status, wifi, setwifi, clearwifi\n", cmd.c_str());
+    Serial.printf("[CMD] Unknown '%s' | try: update, version, status, wifi, setwifi, clearwifi\n", cmd.c_str());
   }
 }
 
@@ -269,7 +269,7 @@ void setup() {
   } else {
     Serial.printf("[WiFi] Loaded SSID \"%s\" from NVS (password hidden)\n", gSsid.c_str());
     connectWiFi();
-    // On boot: only check, don't auto-flash if AUTO_OTA=false — user must send /update
+    // On boot: only check, don't auto-flash if AUTO_OTA=false — user must send update
     checkForUpdate(AUTO_OTA);
   }
   lastCheck = millis();
