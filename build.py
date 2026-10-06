@@ -117,7 +117,7 @@ def main():
         return
 
     print(f"\n[3/3] Git commit + instant gh release (no wait) ...")
-    run(["git", "add", "config.h", "version.json"])
+    run(["git", "add", "version.json"])
     subprocess.run(["git", "commit", "-m", f"chore: bump OTA to {new_ver}"], cwd=ROOT)
     run(["git", "push", "origin", "main"])
     if shutil.which("gh") is None:
