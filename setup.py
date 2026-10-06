@@ -48,7 +48,7 @@ def main():
 
     url = ask("1/6 VERSION_URL (raw GitHub URL to version.json)", cur["VERSION_URL"])
     fw = ask("2/6 FW_VERSION (e.g. 1.0.1)", cur["FW_VERSION"])
-    auto_ota = ask("3/6 AUTO_OTA (true=auto-flash on poll, false=notify only, needs /update)", cur["AUTO_OTA"])
+    auto_ota = ask("3/6 AUTO_OTA (true=auto-flash on poll, false=notify only, needs update)", cur["AUTO_OTA"])
     interval = ask("4/6 OTA_CHECK_INTERVAL ms (30000=30s, 3600000=1h)", cur["OTA_CHECK_INTERVAL"])
     insecure = ask("5/6 USE_INSECURE (true/false, true=skip cert check)", cur["USE_INSECURE"])
     led = ask("6/6 LED_PIN (-1 to disable, 2=built-in)", cur["LED_PIN"])
@@ -80,7 +80,7 @@ def main():
     print("  python3 setup.py        # re-run to edit again")
     print("  python3 build.py        # build .bin + push to GitHub (OTA)")
     print("  arduino-cli upload -p /dev/ttyUSB0 --fqbn esp32:esp32:esp32 .  # manual USB flash")
-    print("  Serial -> type /update  # trigger OTA from GitHub")
+    print("  Serial -> type update  # trigger OTA from GitHub")
 
 if __name__ == "__main__":
     main()
