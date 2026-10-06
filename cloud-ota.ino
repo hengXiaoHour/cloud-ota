@@ -279,10 +279,12 @@ void loop() {
   static unsigned long lastBlink = 0;
   if (millis() - lastBlink > 1000) {
     lastBlink = millis();
-    Serial.printf("[Loop] FW %s running, WiFi %s, heap %d\n",
-      FW_VERSION,
-      WiFi.status()==WL_CONNECTED?"OK":"DISC",
-      ESP.getFreeHeap());
+    if (gShowStatus) {
+      Serial.printf("[Loop] FW %s running, WiFi %s, heap %d\n",
+        FW_VERSION,
+        WiFi.status()==WL_CONNECTED?"OK":"DISC",
+        ESP.getFreeHeap());
+    }
     if (LED_PIN >= 0) digitalWrite(LED_PIN, !digitalRead(LED_PIN));
   }
 
