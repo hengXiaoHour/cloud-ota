@@ -11,7 +11,7 @@
 // How often to auto-check for update (ms) — only notifies if AUTO_OTA false
 #define OTA_CHECK_INTERVAL  30000
 
-// If true, periodic check auto-flashes. If false, it only NOTIFIES and needs "/update"
+// If true, periodic check auto-flashes. If false, it only NOTIFIES and needs "update"
 #define AUTO_OTA            false
 
 // Current firmware version - BUMP THIS ON EVERY RELEASE
@@ -22,4 +22,4 @@
 #define USE_INSECURE    true
 
 // LED pin for status (2 = built-in on many devkits, set -1 to disable)
-#define LED_PIN         4
+#define LED_PIN         2

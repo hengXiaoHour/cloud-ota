@@ -306,7 +306,7 @@ void loop() {
         WiFi.status()==WL_CONNECTED?"OK":"DISC",
         ESP.getFreeHeap());
     }
-    if (LED_PIN >= 0) digitalWrite(LED_PIN, !digitalRead(LED_PIN));
+    // No idle LED blink — the LED is OTA-only (httpUpdate.setLedPin).
   }
 
   if (gSsid.length() > 0 && millis() - lastCheck > OTA_CHECK_INTERVAL) {
