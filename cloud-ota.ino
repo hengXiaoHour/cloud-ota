@@ -212,6 +212,9 @@ void handleCommand(String cmd) {
     checkForUpdate(true); // manual always installs
   } else if (lower == "version" || lower == "/version") {
     Serial.printf("FW: %s\n", FW_VERSION);
+  } else if (lower == "status" || lower == "/status") {
+    gShowStatus = !gShowStatus;
+    Serial.printf("[CMD] Status line %s\n", gShowStatus ? "ON" : "OFF");
   } else if (lower == "wifi" || lower == "/wifi" || lower == "showwifi") {
     if (gSsid.length() == 0) {
       printProvisionHelp();
