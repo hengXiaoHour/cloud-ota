@@ -79,7 +79,7 @@ def main():
     print("\nNext:")
     print("  python3 setup.py        # re-run to edit again")
     print("  python3 build.py        # build .bin + push to GitHub (OTA)")
-    print("  python3 upload.py       # manual USB flash")
+    print("  arduino-cli upload -p /dev/ttyUSB0 --fqbn esp32:esp32:esp32 .  # manual USB flash")
     print("  Serial -> type /update  # trigger OTA from GitHub")
 
 if __name__ == "__main__":

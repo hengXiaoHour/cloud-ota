@@ -133,7 +133,7 @@ def main():
         run(["gh", "release", "upload", f"v{new_ver}", str(fw_bin), "--clobber"], check=False)
     print(f"\n✓ Done! Release v{new_ver} ready: https://github.com/{repo}/releases/tag/v{new_ver}")
     print(f"  ESP32 (FW {cur}) will show: 'New version available! Type /update to flash' on next poll (30s)")
-    print(f"  Trigger: python3 upload.py --trigger-ota -p /dev/ttyUSB0  OR  Serial -> /update")
+    print(f"  Trigger: open serial monitor -> type /update")
 
 if __name__ == "__main__":
     main()
