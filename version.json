@@ -1,5 +1,5 @@
 {
-  "version": "0.0.11",
-  "bin_url": "https://github.com/hengXiaoHour/cloud-ota/releases/download/v0.0.11/firmware.bin",
-  "notes": "Auto release 0.0.11"
+  "version": "0.0.12",
+  "bin_url": "https://github.com/hengXiaoHour/cloud-ota/releases/download/v0.0.12/firmware.bin",
+  "notes": "OTA 0.0.12 - manual update"
 }
