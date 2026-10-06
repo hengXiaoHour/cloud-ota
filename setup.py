@@ -17,8 +17,6 @@ def read_config():
         m = re.search(pattern, text, re.M)
         return m.group(1) if m else default
     return {
-        "WIFI_SSID": get(r'#define\s+WIFI_SSID\s+"([^"]*)"'),
-        "WIFI_PASSWORD": get(r'#define\s+WIFI_PASSWORD\s+"([^"]*)"'),
         "VERSION_URL": get(r'#define\s+VERSION_URL\s+"([^"]*)"'),
         "FW_VERSION": get(r'#define\s+FW_VERSION\s+"([^"]*)"'),
         "OTA_CHECK_INTERVAL": get(r'#define\s+OTA_CHECK_INTERVAL\s+(\d+)'),
