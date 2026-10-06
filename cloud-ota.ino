@@ -102,9 +102,11 @@ bool checkForUpdate(bool doInstall = true, bool verbose = false) {
     if (WiFi.status() != WL_CONNECTED) return false;
   }
 
-  // Routine chatter only when asked (manual trigger) or status mode is on.
+  // Routine chatter only for an explicit ask (manual update command, boot check).
+  // The periodic check stays fully silent when the version is unchanged —
+  // even in status mode — and only speaks when a new release is available.
   // New-version alerts, flash progress, and errors always print.
-  bool v = verbose || gShowStatus;
+  bool v = verbose;
 
   if (v) Serial.printf("\n[OTA] Checking %s\n", VERSION_URL);
   if (v) Serial.printf("[OTA] Current FW: %s\n", FW_VERSION);
@@ -274,7 +276,8 @@ void setup() {
     Serial.printf("[WiFi] Loaded SSID \"%s\" from NVS (password hidden)\n", gSsid.c_str());
     connectWiFi();
     // On boot: only check, don't auto-flash if AUTO_OTA=false — user must send update
-    checkForUpdate(AUTO_OTA);
+    // Boot check answers once so you see the system works; periodic stays silent.
+    checkForUpdate(AUTO_OTA, true);
   }
   lastCheck = millis();
 }
@@ -295,8 +298,8 @@ void loop() {
   if (gSsid.length() > 0 && millis() - lastCheck > OTA_CHECK_INTERVAL) {
     lastCheck = millis();
     // Periodic check respects AUTO_OTA: false = notify only, true = auto-flash.
-    // Quiet unless status mode is on; new-version alerts always print.
-    checkForUpdate(AUTO_OTA, gShowStatus);
+    // Silent when already on latest (both modes); new releases always alert.
+    checkForUpdate(AUTO_OTA, false);
   }
 
   if (Serial.available()) {
