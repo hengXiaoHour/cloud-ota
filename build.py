@@ -108,7 +108,7 @@ def main():
 
     if args.use_actions:
         print(f"\n[3/3] Git commit/tag/push -> Actions will build release (2min) ...")
-        run(["git", "add", "config.h", "version.json"])
+        run(["git", "add", "version.json"])
         subprocess.run(["git", "commit", "-m", f"chore: bump OTA to {new_ver}"], cwd=ROOT)
         run(["git", "tag", f"v{new_ver}"], check=False)
         run(["git", "push", "origin", "main"])
