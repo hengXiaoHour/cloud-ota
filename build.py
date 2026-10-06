@@ -57,7 +57,7 @@ def main():
     args = parser.parse_args()
 
     if not CONFIG.exists():
-        print(f"ERROR: {CONFIG} missing. Run setup.py first.")
+        print(f"ERROR: {CONFIG} missing. Run: cp config.example.h config.h, then python3 setup.py")
         sys.exit(1)
     if shutil.which("arduino-cli") is None:
         print("ERROR: arduino-cli not found.")

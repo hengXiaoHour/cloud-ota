@@ -4,3 +4,5 @@ __pycache__/
 firmware.bin
 .pio/
 .vscode/
+# Local WiFi credentials — never commit (see config.example.h)
+config.h

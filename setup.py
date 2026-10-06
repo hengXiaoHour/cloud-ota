@@ -9,6 +9,7 @@ import sys
 
 ROOT = pathlib.Path(__file__).parent
 CONFIG = ROOT / "config.h"
+EXAMPLE = ROOT / "config.example.h"
 
 def read_config():
     text = CONFIG.read_text()
@@ -41,8 +42,11 @@ def bump_patch(v):
         return v
 
 def main():
+    if EXAMPLE.exists() and not CONFIG.exists():
+        CONFIG.write_text(EXAMPLE.read_text())
+        print(f"Created {CONFIG} from {EXAMPLE.name} — fill in your WiFi.")
     if not CONFIG.exists():
-        print(f"ERROR: {CONFIG} not found")
+        print(f"ERROR: {CONFIG} not found (and no {EXAMPLE.name} to copy)")
         sys.exit(1)
 
     cur = read_config()
