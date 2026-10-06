@@ -22,13 +22,11 @@ arduino-cli lib install ArduinoJson
 
 ### 2. Configure
 
-Edit `config.h:3-8`:
-```cpp
-#define WIFI_SSID "YOUR_WIFI"
-#define WIFI_PASSWORD "YOUR_PASS"
-#define VERSION_URL "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/version.json"
-#define FW_VERSION "1.0.0"
+```bash
+cp config.example.h config.h
+python3 setup.py   # fills WiFi + VERSION_URL into config.h (gitignored, never pushed)
 ```
+`config.h` is local-only. CI builds its own from GitHub Secrets `WIFI_SSID` / `WIFI_PASSWORD` (repo Settings -> Secrets -> Actions).
 Edit `version.json` -> replace `YOUR_USERNAME/YOUR_REPO`.
 
 ### 3. First Flash (USB needed once)
